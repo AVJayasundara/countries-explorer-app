@@ -1,4 +1,6 @@
 import {BrowserRouter, Route, Routes} from 'react-router-dom';
+import CountryDetailsPage from './pages/CountryDetailsPage';
+import HomePage from './pages/HomePage';
 
 
 function App() {
@@ -6,9 +8,9 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<h1>Home</h1>} />
-          <Route path="/about" element={<h1>About</h1>} />
-          <Route path="/contact" element={<h1>Contact</h1>} />
+            <Route path="/country/:countryCode" element={<CountryDetailsPage />} />
+            <Route path="/" element={<HomePage />} />
+            
         </Routes>
       </BrowserRouter>
       
