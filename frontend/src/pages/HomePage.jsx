@@ -105,8 +105,6 @@ const HomePage = () => {
   const handleRegionChange = (e) => {
     const region = e.target.value;
     setSelectedRegion(region);
-    // Note: No need to manually call fetchCountriesByFilters here,
-    // as it will be triggered by the useEffect that depends on selectedRegion
   };
 
   // Clear all filters
@@ -117,16 +115,24 @@ const HomePage = () => {
 
   // Loading indicator component
   const LoadingIndicator = () => (
-    <div className="flex justify-center items-center min-h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="flex flex-col items-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
+        <p className="mt-4 text-indigo-600 font-medium">Loading countries...</p>
+      </div>
     </div>
   );
 
   // Error message component
   const ErrorMessage = ({ message }) => (
     <div className="container mx-auto px-4 mt-8">
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-        <span className="block sm:inline">{message}</span>
+      <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md" role="alert">
+        <div className="flex items-center">
+          <svg className="h-6 w-6 text-red-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="font-medium">{message}</span>
+        </div>
       </div>
     </div>
   );
@@ -140,149 +146,198 @@ const HomePage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center mb-10">World Countries Explorer</h1>
-      
-      {/* Search and Filter Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="relative md:col-span-1">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
+            World Countries Explorer
+          </h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Discover information about countries around the world
+          </p>
+        </div>
+        
+        {/* Search and Filter Section */}
+        <div className="max-w-5xl mx-auto mb-10">
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className="relative md:col-span-6">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  className="pl-10 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                  placeholder="Search for a country..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  aria-label="Search countries"
+                />
+                {isSearching && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-indigo-600"></div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="md:col-span-4">
+                <select
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                  value={selectedRegion}
+                  onChange={handleRegionChange}
+                  aria-label="Filter by Region"
+                >
+                  <option value="">Filter by Region</option>
+                  {regions.map(region => (
+                    <option key={region} value={region}>
+                      {region}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="md:col-span-2 flex items-center">
+                {(searchTerm || selectedRegion) && (
+                  <button
+                    className="w-full px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center justify-center group"
+                    onClick={handleClearFilters}
+                    aria-label="Clear filters"
+                  >
+                    <svg className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-          <input
-            type="text"
-            className="pl-10 w-full p-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Search for a country..."
-            value={searchTerm}
-            onChange={handleSearch}
-            aria-label="Search countries"
-          />
-          {isSearching && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500"></div>
+          
+          {/* Active filters display */}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <span className="text-gray-600 font-medium">
+              {loading ? 'Searching...' : `Showing ${countries.length} countries`}
+            </span>
+            
+            {(searchTerm || selectedRegion) && (
+              <div className="flex flex-wrap gap-2 ml-2">
+                {searchTerm && (
+                  <span className="bg-indigo-100 text-indigo-800 text-xs font-medium px-3 py-1 rounded-full flex items-center">
+                    Search: {searchTerm}
+                  </span>
+                )}
+                {selectedRegion && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-3 py-1 rounded-full flex items-center">
+                    Region: {selectedRegion}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Loading indicator during searches */}
+        {loading && countries.length > 0 && (
+          <div className="flex justify-center my-8">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-indigo-600"></div>
+          </div>
+        )}
+        
+        {/* Error message during searches */}
+        {error && countries.length > 0 && (
+          <div className="mb-8">
+            <ErrorMessage message={error} />
+          </div>
+        )}
+        
+        {/* Countries Grid with Transition Effects */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {countries.length > 0 ? (
+            countries.map((country, index) => (
+              <div 
+                key={country.cca3}
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <Link 
+                  to={`/country/${country.cca3}`} 
+                  className="block h-full"
+                >
+                  <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 h-full transform hover:-translate-y-2">
+                    <div className="h-48 overflow-hidden">
+                      <img
+                        src={country.flags.png || country.flags.svg}
+                        className="w-full h-full object-cover"
+                        alt={`Flag of ${country.name.common}`}
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <h5 className="font-bold text-xl mb-3 text-gray-900">{country.name.common}</h5>
+                      <div className="space-y-2 text-gray-700">
+                        <p className="flex items-center">
+                          <span className="font-medium text-gray-900 mr-2">Population:</span> 
+                          <span>{country.population.toLocaleString()}</span>
+                        </p>
+                        <p className="flex items-center">
+                          <span className="font-medium text-gray-900 mr-2">Region:</span> 
+                          <span>{country.region}</span>
+                        </p>
+                        <p className="flex items-center">
+                          <span className="font-medium text-gray-900 mr-2">Capital:</span> 
+                          <span>{country.capital ? country.capital[0] : 'N/A'}</span>
+                        </p>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-gray-100">
+                        <span className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                          View details
+                          <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full">
+              <div className="bg-indigo-50 border border-indigo-100 text-indigo-700 px-6 py-8 rounded-xl text-center shadow-md">
+                <svg className="h-16 w-16 text-indigo-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-lg font-medium mb-2">No countries found</p>
+                <p className="text-indigo-500">Try adjusting your search or filter criteria</p>
+                <button 
+                  onClick={handleClearFilters}
+                  className="mt-4 inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Clear all filters
+                </button>
+              </div>
             </div>
           )}
         </div>
-        
-        <div className="md:col-span-1">
-          <select
-            className="w-full p-2.5 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            value={selectedRegion}
-            onChange={handleRegionChange}
-            aria-label="Filter by Region"
-          >
-            <option value="">Filter by Region</option>
-            {regions.map(region => (
-              <option key={region} value={region}>
-                {region}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        {(searchTerm || selectedRegion) && (
-          <div className="md:col-span-1 flex items-center">
-            <button
-              className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors flex items-center"
-              onClick={handleClearFilters}
-              aria-label="Clear filters"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-              Clear Filters
-            </button>
-          </div>
-        )}
       </div>
       
-      {/* Loading indicator during searches */}
-      {loading && countries.length > 0 && (
-        <div className="flex justify-center my-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+      {/* Footer */}
+      <footer className="bg-white py-6 mt-12">
+        <div className="container mx-auto px-4 text-center text-gray-500">
+          <p>World Countries Explorer &copy; {new Date().getFullYear()}</p>
         </div>
-      )}
-      
-      {/* Error message during searches */}
-      {error && countries.length > 0 && (
-        <div className="mb-6">
-          <ErrorMessage message={error} />
-        </div>
-      )}
-      
-      {/* Display number of results with active filters */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className="text-gray-600">
-          {loading ? 'Searching...' : `Showing ${countries.length} countries`}
-        </span>
-        
-        {/* Active filters display */}
-        {(searchTerm || selectedRegion) && (
-          <div className="flex flex-wrap gap-2 ml-2">
-            {searchTerm && (
-              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
-                Search: {searchTerm}
-              </span>
-            )}
-            {selectedRegion && (
-              <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
-                Region: {selectedRegion}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-      
-      {/* Countries Grid with Transition Effects */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {countries.length > 0 ? (
-          countries.map(country => (
-            <div 
-              key={country.cca3}
-              className="animate-fade-in transition-all duration-300 ease-in-out"
-            >
-              <Link 
-                to={`/country/${country.cca3}`} 
-                className="block h-full"
-              >
-                <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 h-full transform hover:-translate-y-1 hover:scale-[1.02]">
-                  <div className="h-40 overflow-hidden">
-                    <img
-                      src={country.flags.png || country.flags.svg}
-                      className="w-full h-full object-cover"
-                      alt={`Flag of ${country.name.common}`}
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h5 className="font-bold text-lg mb-2 text-gray-900">{country.name.common}</h5>
-                    <div className="text-sm text-gray-700">
-                      <p className="mb-1"><span className="font-medium">Population:</span> {country.population.toLocaleString()}</p>
-                      <p className="mb-1"><span className="font-medium">Region:</span> {country.region}</p>
-                      <p className="mb-1"><span className="font-medium">Capital:</span> {country.capital ? country.capital[0] : 'N/A'}</p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          ))
-        ) : (
-          <div className="col-span-full text-center">
-            <p className="bg-blue-100 text-blue-700 px-4 py-3 rounded">No countries found matching your criteria</p>
-          </div>
-        )}
-      </div>
+      </footer>
       
       {/* Add this to your CSS or create a style tag */}
       <style jsx>{`
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
+          from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in {
-          animation: fadeIn 0.3s ease-in-out;
+          animation: fadeIn 0.5s ease-out forwards;
         }
       `}</style>
     </div>
