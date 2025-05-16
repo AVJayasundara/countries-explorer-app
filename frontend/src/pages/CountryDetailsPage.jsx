@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCountryByCode } from '../services/api';
+import { useAuth } from './AuthContext';
 
 const CountryDetailsPage = () => {
   const { countryCode } = useParams();
@@ -8,6 +9,12 @@ const CountryDetailsPage = () => {
   const [country, setCountry] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Use the auth context to access favorites functionality
+  const { currentUser, addFavorite, removeFavorite, isFavorite } = useAuth();
+  
+  // Track if this country is in favorites
+  const [inFavorites, setInFavorites] = useState(false);
 
   useEffect(() => {
     const fetchCountryData = async () => {
@@ -15,6 +22,12 @@ const CountryDetailsPage = () => {
         setLoading(true);
         const data = await getCountryByCode(countryCode);
         setCountry(data[0]);
+        
+        // Check if country is in favorites
+        if (currentUser) {
+          setInFavorites(isFavorite(countryCode));
+        }
+        
         setLoading(false);
       } catch (err) {
         setError('Failed to load country details');
@@ -24,7 +37,24 @@ const CountryDetailsPage = () => {
     };
 
     fetchCountryData();
-  }, [countryCode]);
+  }, [countryCode, currentUser, isFavorite]);
+
+  // Toggle favorite status
+  const handleToggleFavorite = () => {
+    if (!currentUser) {
+      // Redirect to login if user is not authenticated
+      navigate('/login', { state: { from: { pathname: `/country/${countryCode}` } } });
+      return;
+    }
+    
+    if (inFavorites) {
+      removeFavorite(countryCode);
+    } else {
+      addFavorite(country);
+    }
+    
+    setInFavorites(!inFavorites);
+  };
 
   if (loading) {
     return (
@@ -87,15 +117,41 @@ const CountryDetailsPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <button 
-        className="flex items-center mb-6 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors" 
-        onClick={() => navigate('/')}
-      >
-        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-        </svg>
-        Back to Home
-      </button>
+      <div className="flex justify-between items-center mb-6">
+        <button 
+          className="flex items-center bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors" 
+          onClick={() => navigate('/')}
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Back to Home
+        </button>
+        
+        {/* Favorites Button */}
+        <button
+          onClick={handleToggleFavorite}
+          className={`flex items-center font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors ${
+            inFavorites 
+              ? 'bg-red-500 hover:bg-red-600 text-white focus:ring-red-500' 
+              : 'bg-yellow-500 hover:bg-yellow-600 text-white focus:ring-yellow-500'
+          }`}
+        >
+          <svg
+            className={`w-5 h-5 mr-2 ${inFavorites ? 'fill-current' : 'stroke-current fill-none'}`}
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+            ></path>
+          </svg>
+          {inFavorites ? 'Remove from Favorites' : 'Add to Favorites'}
+        </button>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <div>
