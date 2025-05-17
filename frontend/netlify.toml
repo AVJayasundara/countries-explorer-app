@@ -6,7 +6,3 @@
   from = "/*"
   to = "/index.html"
   status = 200
-
-
-
-  //additional redirects can be added here
